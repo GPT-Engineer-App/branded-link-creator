@@ -1,50 +1,61 @@
 import React, { useState } from "react";
-import { Container, VStack, Input, Button, Text, Heading, useToast } from "@chakra-ui/react";
+import { Container, VStack, Input, Button, Heading, useToast } from "@chakra-ui/react";
 
 const Index = () => {
-  const [subdirectory, setSubdirectory] = useState("");
-  const [fullUrl, setFullUrl] = useState("");
+  const [audioFile, setAudioFile] = useState(null);
+  const [transcription, setTranscription] = useState("");
   const toast = useToast();
 
-  const handleCreateSubdirectory = () => {
-    if (!subdirectory) {
+  const handleFileChange = (event) => {
+    setAudioFile(event.target.files[0]);
+  };
+
+  const handleTranscribe = () => {
+    if (!audioFile) {
       toast({
         title: "Error",
-        description: "Subdirectory name can't be empty",
+        description: "Please upload an audio file",
         status: "error",
         duration: 3000,
         isClosable: true,
       });
       return;
     }
-    const url = `https://www.yourdomain.com/${subdirectory}`;
-    setFullUrl(url);
+
+    const simulatedTranscription = `Transcribed text of ${audioFile.name}`;
+    setTranscription(simulatedTranscription);
     toast({
-      title: "Subdirectory Created",
-      description: `Your new URL is: ${url}`,
+      title: "Transcription Complete",
+      description: "The audio file has been transcribed.",
       status: "success",
       duration: 3000,
       isClosable: true,
     });
-    setSubdirectory("");
+  };
+
+  const handleDownloadCSV = () => {
+    const csvContent = `data:text/csv;charset=utf-8,Transcription\n"${transcription}"`;
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "transcription.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   return (
     <Container centerContent maxW="container.md" height="100vh" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
       <VStack spacing={4} width="100%">
-        <Heading>Create Your Branded Link</Heading>
-        <Text>Enter a name for your subdirectory:</Text>
-        <Input placeholder="Enter subdirectory name" value={subdirectory} onChange={(e) => setSubdirectory(e.target.value)} />
-        <Button colorScheme="blue" onClick={handleCreateSubdirectory}>
-          Create Subdirectory
+        <Heading>Upload and Transcribe Audio</Heading>
+        <Input type="file" accept="audio/*" onChange={handleFileChange} />
+        <Button colorScheme="blue" onClick={handleTranscribe}>
+          Transcribe Audio
         </Button>
-        {fullUrl && (
-          <Text mt={4}>
-            Your branded link:{" "}
-            <Text as="span" fontWeight="bold">
-              {fullUrl}
-            </Text>
-          </Text>
+        {transcription && (
+          <Button mt={4} colorScheme="green" onClick={handleDownloadCSV}>
+            Download Transcription as CSV
+          </Button>
         )}
       </VStack>
     </Container>
